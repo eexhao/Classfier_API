@@ -25,29 +25,24 @@ def Classfication(image):
     for i,item in enumerate(result):
         result_item = {}
         result_item["Object Class"] = item[1]
-        result_item["Probability"] = item[2]
-        #result_item["Probability"] = f"{item[2]*100:0.1f} %"
+        result_item["Probability"] = float("{:.1f}".format(item[2]*100))
         All_Results.append(result_item)
 
-    All_Results = sorted(All_Results, key=lambda k: k['Probability'], reverse=True)
-    return All_Results
-    # Final_Results = []
-    # if All_Results[0].get('Probability')>0.5:
-    #    Final_Results.append(All_Results[0])
-    #
-    # return Final_Results
+    if All_Results[0].get('Probability') > 50:
+        Final_Result='This is a {}, and it is {}% correct'.format(All_Results[0].get('Object Class'),All_Results[0].get('Probability'))
+    else:
+        Final_Result = 'This is likely to be a {} or {}, and the probabilities are {}% and {}% respectively'.format(
+            All_Results[0].get('Object Class'), All_Results[1].get('Object Class'),
+            All_Results[0].get('Probability'), All_Results[1].get('Probability'))
+    return Final_Result
 
 app_desc = """<h2>Upload an image which contains a single common subject to`Image_Classifier`below:</h2>"""
 app = FastAPI(title='Streamba challenge-Image Classifier', description=app_desc)
 
 @app.post("/Image_Classifier")
 async def Image_Classifier(file: UploadFile = File(...)):
-    extension = file.filename.split(".")[-1] in ("jpg", "jpeg", "png")
-    if not extension:
-        return "Image must be jpg or png format!"
     image = Image_process(await file.read())
     prediction = Classfication(image)
-
     return prediction
 
 if __name__ == "__main__":
